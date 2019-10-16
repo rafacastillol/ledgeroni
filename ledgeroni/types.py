@@ -1,8 +1,12 @@
 from arrow.arrow import Arrow
 from dataclasses import dataclass, field
-from typing import List
+from collections import defaultdict
+from typing import List, Set, Tuple, Dict
 
-@dataclass
+def recursive_default_dict():
+    return defaultdict(recursive_default_dict)
+
+@dataclass(frozen=True)
 class Commodity:
     name: str
     is_prefix: bool = False
@@ -12,9 +16,9 @@ class Commodity:
         return self.name.strip()
 
 
-@dataclass
+@dataclass(frozen=True)
 class Posting:
-    account: List[str]
+    account: Tuple[str]
     commodity: Commodity
     amount: float
 
@@ -29,7 +33,7 @@ class Transaction:
         self.postings.append(posting)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Price:
     timestamp: Arrow
     source: Commodity
@@ -38,9 +42,41 @@ class Price:
 
 
 @dataclass
+class AccountAggregate:
+    name: str
+    own_balance: float = 0
+    subaccounts: Dict = field(default_factory=dict)
+
+    def compute_aggregate(self):
+        return self.own_balance + sum(a.compute_aggregate() for a 
+                                      in self.subaccounts.values())
+
+    @classmethod
+    def build_from_accounts(cls, accounts):
+        root = recursive_default_dict()
+        for account in accounts:
+            current = root
+            for lvl in account:
+                current = current[lvl]
+
+        return cls.build_from_dict_tree(None, root)
+
+    @classmethod
+    def build_from_dict_tree(cls, name, subtree):
+        children = {key: cls.build_from_dict_tree(key, children)
+                    for k, children in subtree.values()}
+
+        return AccountAggregate(name=name, own_balance=0, subtree=children)
+
+
+
+@dataclass(frozen=True)
 class IgnoreSymbol:
     symbol: str
 
-@dataclass
+
+@dataclass(frozen=True)
 class DefaultCommodity:
     commodity: Commodity
+
+

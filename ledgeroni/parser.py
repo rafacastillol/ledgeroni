@@ -19,7 +19,7 @@ import arrow
 from typing import Iterator
 
 from ledgeroni.types import (Transaction, Posting, Commodity, Price,
-                                   IgnoreSymbol, DefaultCommodity)
+                             IgnoreSymbol, DefaultCommodity)
 
 
 def load_lines(filename: str) -> Iterator[str]:
@@ -71,7 +71,7 @@ def read_posting_line(l: str) -> Posting:
             break
 
 
-    account = account.split(':')
+    account = tuple(account.split(':'))
     amount, commodity = read_amount(amount)
 
     return Posting(account=account, commodity=commodity, amount=amount)
