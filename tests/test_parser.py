@@ -1,5 +1,5 @@
 import unittest
-import ledgeroni.parser as parser
+from ledgeroni import parser
 from ledgeroni.types import (Transaction, Posting, Commodity, Price,
                                    IgnoreSymbol, DefaultCommodity)
 import arrow
