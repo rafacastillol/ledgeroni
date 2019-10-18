@@ -1,8 +1,11 @@
 import functools
+import copy
+from fractions import Fraction
 from arrow.arrow import Arrow
 from dataclasses import dataclass, field
 from collections import defaultdict
-from typing import List, Set, Tuple, Dict
+from typing import List, Set, Tuple, Dict, Iterator
+from ledgeroni.query import Query
 
 
 @dataclass(frozen=True)
@@ -51,20 +54,50 @@ class Transaction:
     def add_posting(self, posting):
         self.postings.append(posting)
 
-    def matches_query(self, query):
+    def matches_query(self, query: Query) -> bool:
+        "Returns a boolean that indicates if any of the postings match the query"
         return any(p.matches_query(query) for p in self.postings)
 
-    def postings_matching(self, query):
+    def postings_matching(self, query) -> Iterator:
+        "Returns an iterator of postings that match query"
         if query is None:
             return self.postings
         else:
             return (p for p in self.postings if p.matches_query(query))
 
-    def as_journal_format(self):
+    def as_journal_format(self) -> str:
+        "Returns the transaction formatted in a ledger journal format"
         date_str = self.date.format('YYYY/MM/DD')
         header = '{} {}'.format(date_str, self.description)
         return '\n'.join([header] + [p.as_journal_format()
                                      for p in self.postings])
+
+    def calc_totals(self) -> Transaction:
+        """
+        Returns a new transaction where postings with implicit amounts are
+        made explicit
+        """
+        auto_posting = None
+        totals = defaultdict(Fraction)
+        for i, p in enumerate(self.postings):
+            if p.amounts is None:
+                if auto_posting is not None:
+                    raise ValueError
+                auto_posting = i
+            else:
+                for c, a in p.amounts.items():
+                    totals[c] -= a
+
+        new_trans = self
+        if auto_posting is not None:
+            new_trans = copy.copy(self)
+            new_trans.postings = new_trans.postings[:]
+            new_trans.postings[auto_posting] = Posting(
+                account=self.postings[auto_posting].account,
+                amounts=totals)
+        return new_trans
+
+
 
 
 

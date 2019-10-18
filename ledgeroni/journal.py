@@ -27,8 +27,6 @@ class Journal:
             self.accounts.update(p.account for p in transaction.postings)
             self.commodities.update(c for p in transaction.postings
                                     if p.amounts for c in p.amounts)
-            if calc_totals:
-                self.compute_transaction_amounts(transaction)
             self.update_aggregate(transaction)
 
     def add_from_file(self, filename, calc_totals=True):
@@ -45,28 +43,10 @@ class Journal:
     def update_aggregate(self, transaction):
         if self.aggregate is None:
             return
-        for posting in transaction.get_matching_postings(self.query):
+        transaction = transaction.calc_totals()
+        for posting in transaction.postings_matching(self.query):
             if posting.amounts is None:
                 continue
             for c, a in posting.amounts.items():
                 self.aggregate.add_commodity(posting.account, a, c)
-
-    def compute_transaction_amounts(self, transaction):
-        auto_posting = None
-        totals = defaultdict(Fraction)
-        for i, p in enumerate(transaction.postings):
-            if p.amounts is None:
-                if auto_posting is not None:
-                    raise ValueError
-                auto_posting = i
-            else:
-                for c, a in p.amounts.items():
-                    totals[c] -= a
-
-        if auto_posting is not None:
-            transaction.postings[auto_posting] = Posting(
-                account=transaction.postings[auto_posting].account,
-                amounts=totals)
-
-
 
