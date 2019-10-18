@@ -5,8 +5,10 @@ from dataclasses import dataclass, field
 from ledgeroni.types import (Transaction, Posting, Commodity, Price,
                              IgnoreSymbol, DefaultCommodity)
 from ledgeroni.query import Query
-from typing import List, Set, Tuple, Dict
+from ledgeroni.sorter import JournalSorter
+from typing import List, Set, Tuple, Dict, Iterator
 from ledgeroni.aggregate import AccountAggregate
+import copy
 
 @dataclass
 class Journal:
@@ -18,6 +20,7 @@ class Journal:
     ignored_symbols: List[str] = field(default_factory=list)
     aggregate: AccountAggregate = None
     query: Query = None
+    sorter: JournalSorter = None
 
 
     def add_transaction(self, transaction, calc_totals=True):
@@ -44,6 +47,8 @@ class Journal:
                 self.ignored_symbols.append(result.symbol)
             elif isinstance(result, Price):
                 self.prices.append(result)
+        if self.sorter:
+            self.sorter.sort(self.transactions)
 
     def update_aggregate(self, transaction: Transaction):
         """
@@ -59,3 +64,15 @@ class Journal:
             for c, a in posting.amounts.items():
                 self.aggregate.add_commodity(posting.account, a, c)
 
+    def generate_running_total_report(self) -> Iterator:
+        totals = defaultdict(Fraction)
+        
+        for transaction in self.transactions:
+            transaction = transaction.calc_totals()
+            trans_total = {}
+            for posting in transaction.postings:
+                for commodity, amount in posting.amounts.items():
+                    totals[commodity] += amount
+                posting_total = {c: a for c, a in totals.items() if a != 0}
+                trans_total[posting.account_name] = posting.amounts, posting_total
+            yield transaction, trans_total

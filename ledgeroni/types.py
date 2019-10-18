@@ -73,12 +73,18 @@ class Transaction:
         else:
             return (p for p in self.postings if p.matches_query(query))
 
+    @property
+    def date_str(self):
+        return self.date.format('YYYY/MM/DD')
+
+    @property
+    def header(self):
+        return '{} {}'.format(self.date_str, self.description)
+
     def as_journal_format(self) -> str:
         "Returns the transaction formatted in a ledger journal format"
-        date_str = self.date.format('YYYY/MM/DD')
-        header = '{} {}'.format(date_str, self.description)
-        return '\n'.join([header] + [p.as_journal_format()
-                                     for p in self.postings])
+        return '\n'.join([self.header] + [p.as_journal_format()
+                                          for p in self.postings])
 
     def calc_totals(self) -> Transaction:
         """
@@ -104,9 +110,6 @@ class Transaction:
                 account=self.postings[auto_posting].account,
                 amounts=totals)
         return new_trans
-
-
-
 
 
 @dataclass(frozen=True)

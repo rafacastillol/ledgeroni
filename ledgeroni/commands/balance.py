@@ -1,20 +1,11 @@
 import click
-from ledgeroni.journal import Journal
-from ledgeroni.aggregate import AccountAggregate
-from ledgeroni import query
 from pprint import pprint
 from colorama import Fore, Back, Style
-import colorama
 
-colorama.init()
-
-
-def format_amount(commodity, amount):
-    s = commodity.format_amount(amount)
-    s = '{:>20}'.format(s)
-    if amount < 0:
-        s = Fore.RED + s + Style.RESET_ALL
-    return s
+from ledgeroni.journal import Journal
+from ledgeroni.aggregate import AccountAggregate
+from ledgeroni.util import format_amount
+from ledgeroni import query
 
 
 @click.command()
@@ -24,8 +15,7 @@ def print_balance(ctx, filter_strs):
     filter_query = (None if not filter_strs 
                     else query.build_simple_or_query(filter_strs))
     journal = Journal(query=filter_query,
-                      aggregate = AccountAggregate(),
-                      only_filter_transactions=False) 
+                      aggregate = AccountAggregate())
     price_db = ctx.obj.get('PRICE_DB', None)
     if price_db:
         journal.add_from_file(price_db)
