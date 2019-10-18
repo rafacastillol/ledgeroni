@@ -1,37 +1,27 @@
+import re
 from dataclasses import dataclass, field
+from typing import Tuple
 
+def build_simple_or_query(strs):
+    qs = tuple([RegexQuery(re.compile(s)) for s in strs])
+    return Or(qs)
 
+@dataclass(frozen=True)
 class Query:
     pass
 
 
+@dataclass(frozen=True)
 class RegexQuery(Query):
-    def __init__(self, re):
-        self.re = re
+    regex: re.Pattern
 
     def execute(self, data):
-        return self.re.match(data) is not None
+        return self.regex.match(data) is not None
 
 
-class BinaryQuery(Query):
-    def __init__(self, a, b):
-        self.a = a
-        self.b = b
-
-
-class And(BinaryQuery):
+@dataclass(frozen=True)
+class Or(Query):
+    qs: Tuple[Query]
     def execute(self, data):
-        return self.a.execute(data) and self.b.execute(data)
+        return any(q.execute(data) for q in self.qs)
 
-
-class Or(BinaryQuery):
-    def execute(self, data):
-        return self.a.execute(data) or self.b.execute(data)
-
-
-class Not(Query):
-    def __init__(self, q):
-        self.q = q
-
-    def execute(self, data):
-        return not self.q.execute(data)

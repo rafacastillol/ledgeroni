@@ -30,21 +30,21 @@ class TestParserMethods(unittest.TestCase):
         posting_line = '	Asset:Bitcoin Wallet		-10'
         posting = Posting(
             account=('Asset', 'Bitcoin Wallet'),
-            amount=-10.0, commodity=None)
+            amounts={None: -10.0})
         result = parser.read_posting_line(posting_line)
         self.assertEqual(result, posting)
 
         posting_line = '	Payable:Joe:Favor	-$10'
         posting = Posting(
             account=('Payable', 'Joe', 'Favor'),
-            amount=-10.0, commodity=USD)
+            amounts={USD: -10.0})
         result = parser.read_posting_line(posting_line)
         self.assertEqual(result, posting)
 
         posting_line = '	Payable:Joe:Favor	-10 BTC'
         posting = Posting(
             account=('Payable', 'Joe', 'Favor'),
-            amount=-10.0, commodity=BTC)
+            amounts={BTC: -10.0})
         result = parser.read_posting_line(posting_line)
         self.assertEqual(result, posting)
 
@@ -59,10 +59,10 @@ class TestParserMethods(unittest.TestCase):
             description='Purchased reddit gold for the year')
         trans.add_posting(Posting(
             account=('Asset', 'Bitcoin Wallet'),
-            amount=-10.0, commodity=None))
+            amounts={None: -10.0}))
         trans.add_posting(Posting(
             account=('Expense', 'Web Services', 'Reddit'),
-            amount=None, commodity=None))
+            amounts=None))
 
         self.assertEqual(result[0], trans)
 

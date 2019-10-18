@@ -1,10 +1,9 @@
+import functools
 from arrow.arrow import Arrow
 from dataclasses import dataclass, field
 from collections import defaultdict
 from typing import List, Set, Tuple, Dict
 
-def recursive_default_dict():
-    return defaultdict(recursive_default_dict)
 
 @dataclass(frozen=True)
 class Commodity:
@@ -15,12 +14,32 @@ class Commodity:
     def symbol(self):
         return self.name.strip()
 
+    def format_amount(self, amt):
+        amt = '{:.2f}'.format(float(amt))
+        if self.is_prefix:
+            return self.name + amt
+        else:
+            return amt + self.name
+
 
 @dataclass(frozen=True)
 class Posting:
     account: Tuple[str]
-    commodity: Commodity
-    amount: float
+    amounts: Dict = field(default_factory=dict)
+
+    @property
+    def account_name(self):
+        return ':'.join(self.account)
+
+    def matches_query(self, query):
+        return query.execute(self.account_name)
+
+    def as_journal_format(self):
+        amount_str = ''
+        if self.amounts:
+            amount_str = ' '.join(c.format_amount(a)
+                                  for c, a in self.amounts.items())
+        return '\t{:<25}\t{:>20}'.format(self.account_name, amount_str)
 
 
 @dataclass
@@ -32,6 +51,22 @@ class Transaction:
     def add_posting(self, posting):
         self.postings.append(posting)
 
+    def matches_query(self, query):
+        return any(p.matches_query(query) for p in self.postings)
+
+    def get_matching_postings(self, query):
+        return (p for p in self.postings if p.matches_query(query))
+
+    def remove_non_matching(self, query):
+        self.postings = [p for p in self.postings if p.matches_query(query)]
+
+    def as_journal_format(self):
+        date_str = self.date.format('YYYY/MM/DD')
+        header = '{} {}'.format(date_str, self.description)
+        return '\n'.join([header] + [p.as_journal_format()
+                                     for p in self.postings])
+
+
 
 @dataclass(frozen=True)
 class Price:
@@ -39,35 +74,6 @@ class Price:
     source: Commodity
     dest: Commodity
     rate: float
-
-
-@dataclass
-class AccountAggregate:
-    name: str
-    own_balance: float = 0
-    subaccounts: Dict = field(default_factory=dict)
-
-    def compute_aggregate(self):
-        return self.own_balance + sum(a.compute_aggregate() for a 
-                                      in self.subaccounts.values())
-
-    @classmethod
-    def build_from_accounts(cls, accounts):
-        root = recursive_default_dict()
-        for account in accounts:
-            current = root
-            for lvl in account:
-                current = current[lvl]
-
-        return cls.build_from_dict_tree(None, root)
-
-    @classmethod
-    def build_from_dict_tree(cls, name, subtree):
-        children = {key: cls.build_from_dict_tree(key, children)
-                    for k, children in subtree.values()}
-
-        return AccountAggregate(name=name, own_balance=0, subtree=children)
-
 
 
 @dataclass(frozen=True)

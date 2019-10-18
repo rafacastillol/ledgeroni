@@ -1,0 +1,4 @@
+2012/7/1 Partial payment from Client X
+	Bank:Paypal		$100
+  Asset:Bitcoin  100 BTC
+	Receivable:ClientX

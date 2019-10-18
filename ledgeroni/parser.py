@@ -16,6 +16,7 @@ import re
 import itertools
 import os
 import arrow
+from fractions import Fraction
 from typing import Iterator
 
 from ledgeroni.types import (Transaction, Posting, Commodity, Price,
@@ -73,8 +74,9 @@ def read_posting_line(l: str) -> Posting:
 
     account = tuple(account.split(':'))
     amount, commodity = read_amount(amount)
+    amounts = None if amount is None else {commodity: amount}
 
-    return Posting(account=account, commodity=commodity, amount=amount)
+    return Posting(account=account, amounts=amounts)
 
 
 amount_re = re.compile(
@@ -101,7 +103,7 @@ def read_amount(s):
         raise ValueError
 
     multi = -1 if negation else 1
-    amount = float(amount)
+    amount = Fraction(amount)
     commodity = None
     if prefix:
         commodity = Commodity(is_prefix=True, name=prefix)
