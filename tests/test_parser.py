@@ -4,6 +4,7 @@ from ledgeroni.types import (Transaction, Posting, Commodity, Price,
                                    IgnoreSymbol, DefaultCommodity)
 import arrow
 from datetime import datetime
+from fractions import Fraction
 
 USD = Commodity(is_prefix=True, name='$')
 AU = Commodity(is_prefix=False, name='AU')
@@ -69,7 +70,7 @@ class TestParserMethods(unittest.TestCase):
     def test_read_price_line(self):
         price_line = 'P 2012/11/25 05:04:00 AU $1751.90'
         price = Price(timestamp=arrow.get(datetime(2012, 11, 25, 5, 4, 0)),
-                      source=AU,dest=USD, rate=1751.90)
+                      source=AU,dest=USD, rate=Fraction('1751.90'))
         result = parser.read_price_line(price_line)
 
         self.assertEqual(result, price)
