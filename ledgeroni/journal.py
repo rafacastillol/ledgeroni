@@ -45,11 +45,11 @@ class Journal:
     def update_aggregate(self, transaction):
         if self.aggregate is None:
             return
-        for posting in transaction.postings:
-            if posting.amounts and (not self.query
-                                    or posting.matches_query(self.query)):
-                for c, a in posting.amounts.items():
-                    self.aggregate.add_commodity(posting.account, a, c)
+        for posting in transaction.get_matching_postings(self.query):
+            if posting.amounts is None:
+                continue
+            for c, a in posting.amounts.items():
+                self.aggregate.add_commodity(posting.account, a, c)
 
     def compute_transaction_amounts(self, transaction):
         auto_posting = None

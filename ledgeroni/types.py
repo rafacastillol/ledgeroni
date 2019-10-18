@@ -54,11 +54,11 @@ class Transaction:
     def matches_query(self, query):
         return any(p.matches_query(query) for p in self.postings)
 
-    def get_matching_postings(self, query):
-        return (p for p in self.postings if p.matches_query(query))
-
-    def remove_non_matching(self, query):
-        self.postings = [p for p in self.postings if p.matches_query(query)]
+    def postings_matching(self, query):
+        if query is None:
+            return self.postings
+        else:
+            return (p for p in self.postings if p.matches_query(query))
 
     def as_journal_format(self):
         date_str = self.date.format('YYYY/MM/DD')
