@@ -17,3 +17,4 @@ def cli(ctx, ledger_files, price_db):
 
 cli.add_command(print_balance, name='balance')
 cli.add_command(print_balance, name='bal')
+cli.add_command(print_transactions, name='print')
