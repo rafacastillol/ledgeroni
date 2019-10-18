@@ -4,6 +4,7 @@ from ledgeroni.commands.balance import print_balance
 from ledgeroni.commands.print import print_transactions
 from ledgeroni.commands.register import print_register
 from colorama import init
+
 init()
 
 @click.group()

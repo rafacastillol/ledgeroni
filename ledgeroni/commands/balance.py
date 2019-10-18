@@ -14,8 +14,10 @@ from ledgeroni import query
 def print_balance(ctx, filter_strs):
     filter_query = (None if not filter_strs 
                     else query.build_simple_or_query(filter_strs))
-    journal = Journal(query=filter_query,
-                      aggregate = AccountAggregate())
+    journal = Journal(query=filter_query)
+
+    aggregate = AccountAggregate()
+
     price_db = ctx.obj.get('PRICE_DB', None)
     if price_db:
         journal.add_from_file(price_db)
@@ -23,7 +25,9 @@ def print_balance(ctx, filter_strs):
     for filename in ctx.obj.get('LEDGER_FILES', []):
         journal.add_from_file(filename)
 
-    balances = list(journal.aggregate.iter_aggregates())
+    aggregate.add_from_journal(journal)
+
+    balances = list(aggregate.iter_aggregates())
     _, _, total = balances[0]
     balances = balances[1:]
     for level, name, aggregate in balances:

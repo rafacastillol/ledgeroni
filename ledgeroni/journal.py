@@ -32,7 +32,6 @@ class Journal:
             self.accounts.update(p.account for p in transaction.postings)
             self.commodities.update(c for p in transaction.postings
                                     if p.amounts for c in p.amounts)
-            self.update_aggregate(transaction)
 
     def add_from_file(self, filename: str, calc_totals: bool=True):
         """
@@ -49,20 +48,6 @@ class Journal:
                 self.prices.append(result)
         if self.sorter:
             self.sorter.sort(self.transactions)
-
-    def update_aggregate(self, transaction: Transaction):
-        """
-        If the journal is keeping an aggregate, update it with the
-        postings from the given transaction
-        """
-        if self.aggregate is None:
-            return
-        transaction = transaction.calc_totals()
-        for posting in transaction.postings_matching(self.query):
-            if posting.amounts is None:
-                continue
-            for c, a in posting.amounts.items():
-                self.aggregate.add_commodity(posting.account, a, c)
 
     def generate_running_total_report(self) -> Iterator:
         totals = defaultdict(Fraction)

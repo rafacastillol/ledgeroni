@@ -1,7 +1,7 @@
 import functools
 from fractions import Fraction
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Set
 from collections import defaultdict, deque
 from ledgeroni.types import Commodity
 
@@ -14,7 +14,8 @@ class AccountAggregate:
         default_factory=lambda: defaultdict(AccountAggregate))
     aggregates: Dict = field(default_factory=lambda: defaultdict(Fraction))
 
-    def add_commodity(self, account, amount, commodity):
+    def add_commodity(self, account: Tuple[str], amount: Fraction,
+                      commodity: Commodity):
         """
         Updates given account and parent accounts with the given amount  of
         commodity
@@ -26,6 +27,18 @@ class AccountAggregate:
         else:
             self.own_balances[commodity] += amount
             self.aggregates[commodity] += amount
+
+    def add_transaction(self, transaction, query=None):
+        transaction = transaction.calc_totals()
+        for posting in transaction.postings_matching(query):
+            if posting.amounts is None:
+                continue
+            for c, a in posting.amounts.items():
+                self.add_commodity(posting.account, a, c)
+
+    def add_from_journal(self, journal):
+        for transaction in journal.transactions:
+            self.add_transaction(transaction, journal.query)
 
     def iter_aggregates(self):
         """Iterates through all aggregates in a depth first search, yielding
