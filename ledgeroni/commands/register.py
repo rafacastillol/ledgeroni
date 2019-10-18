@@ -35,7 +35,9 @@ def print_register(ctx, filter_strs):
     filter_query = (None if not filter_strs 
                     else query.build_simple_or_query(filter_strs))
     sorter = ctx.obj.get('SORTER', None)
+
     journal = Journal(query=filter_query)
+
     price_db = ctx.obj.get('PRICE_DB', None)
     if price_db:
         journal.add_from_file(price_db)
@@ -43,6 +45,8 @@ def print_register(ctx, filter_strs):
     for filename in ctx.obj.get('LEDGER_FILES', []):
         journal.add_from_file(filename, calc_totals=False)
 
+    if sorter:
+        sorter.sort_journal(journal)
 
     for transaction, postings in journal.generate_running_total_report():
         for trans, post, change, total in build_table(transaction, postings):

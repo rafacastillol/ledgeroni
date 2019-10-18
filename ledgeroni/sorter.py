@@ -31,8 +31,11 @@ class JournalSorter:
                      for term in self.trans_terms)
         return key
 
-    def sort(self, transactions):
+    def sort_transactions(self, transactions):
         transactions.sort(key=self.build_transaction_key)
+
+    def sort_journal(self, journal):
+        self.sort_transactions(journal.transactions)
 
     @classmethod
     def from_term_list(cls, terms):

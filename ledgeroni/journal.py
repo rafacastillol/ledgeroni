@@ -18,9 +18,7 @@ class Journal:
     prices: List[Price] = field(default_factory=list)
     default_commodity: Commodity = None
     ignored_symbols: List[str] = field(default_factory=list)
-    aggregate: AccountAggregate = None
     query: Query = None
-    sorter: JournalSorter = None
 
 
     def add_transaction(self, transaction, calc_totals=True):
@@ -46,8 +44,6 @@ class Journal:
                 self.ignored_symbols.append(result.symbol)
             elif isinstance(result, Price):
                 self.prices.append(result)
-        if self.sorter:
-            self.sorter.sort(self.transactions)
 
     def generate_running_total_report(self) -> Iterator:
         totals = defaultdict(Fraction)
