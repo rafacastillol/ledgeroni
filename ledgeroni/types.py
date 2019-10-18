@@ -1,3 +1,4 @@
+from __future__ import annotations
 import functools
 import copy
 from fractions import Fraction
@@ -10,6 +11,7 @@ from ledgeroni.query import Query
 
 @dataclass(frozen=True)
 class Commodity:
+    "Represents a type of commodity to be exchanged"
     name: str
     is_prefix: bool = False
 
@@ -27,17 +29,21 @@ class Commodity:
 
 @dataclass(frozen=True)
 class Posting:
+    "Represents a movement in a specific account"
     account: Tuple[str]
     amounts: Dict = field(default_factory=dict)
 
     @property
-    def account_name(self):
+    def account_name(self) -> str:
+        "Full account name as shown in the original posting"
         return ':'.join(self.account)
 
-    def matches_query(self, query):
+    def matches_query(self, query: Query) -> bool:
+        "Returns whether the posting matches the given query"
         return query.execute(self.account_name)
 
-    def as_journal_format(self):
+    def as_journal_format(self) -> str:
+        "Returns the posting formatted in a ledger journal format"
         amount_str = ''
         if self.amounts:
             amount_str = ' '.join(c.format_amount(a)
@@ -47,11 +53,13 @@ class Posting:
 
 @dataclass
 class Transaction:
+    "Represents a transaction of commodities"
     date: Arrow
     description: str
     postings: List[Posting] = field(default_factory=list)
 
-    def add_posting(self, posting):
+    def add_posting(self, posting: Posting):
+        "Adds a posting to this transaction"
         self.postings.append(posting)
 
     def matches_query(self, query: Query) -> bool:

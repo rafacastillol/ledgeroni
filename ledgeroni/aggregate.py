@@ -8,12 +8,17 @@ from ledgeroni.types import Commodity
 
 @dataclass
 class AccountAggregate:
+    "Builds a tree to calculate account and subaccount aggregates on the fly."
     own_balances: Dict = field(default_factory=lambda: defaultdict(Fraction))
     subaccounts: Dict = field(
         default_factory=lambda: defaultdict(AccountAggregate))
     aggregates: Dict = field(default_factory=lambda: defaultdict(Fraction))
 
     def add_commodity(self, account, amount, commodity):
+        """
+        Updates given account and parent accounts with the given amount  of
+        commodity
+        """
         if len(account):
             self.aggregates[commodity] += amount
             self.subaccounts[account[0]].add_commodity(account[1:], amount,
@@ -22,13 +27,10 @@ class AccountAggregate:
             self.own_balances[commodity] += amount
             self.aggregates[commodity] += amount
 
-    def get_account_aggregates(self, account):
-        if len(account) == 0:
-            return self.aggregates
-        return self.subaccounts[account[0]].get_account_aggregates(account[1:])
-
-
     def iter_aggregates(self):
+        """Iterates through all aggregates in a depth first search, yielding
+        visited accounts in a preorder fashion.
+        """
         stack = deque([(self, 0, '')])
         while stack:
             agg, level, name = stack.pop()
@@ -40,6 +42,7 @@ class AccountAggregate:
                     c = agg.subaccounts[n]
                     stack.append((c, level + 1, n))
             else:
+                # If node only has one child, combine it with it's child
                 while len(agg.subaccounts) == 1:
                     # This will only iterate once lol
                     for n, c in agg.subaccounts.items():

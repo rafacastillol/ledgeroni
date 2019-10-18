@@ -140,7 +140,11 @@ def read_default_commodity_line(l):
     return DefaultCommodity(commodity)
 
 
-def read_lines(it):
+def read_lines(it: Iterator[str]) -> Iterator:
+    """
+    Reads all lines from the iterator and builds and yields the journal
+    objects that are parsed
+    """
     current_transaction = None
     for line in it:
         if line[0].isspace():
@@ -165,7 +169,11 @@ def read_lines(it):
         yield current_transaction
 
 
-def read_file(filename: str):
+def read_file(filename: str) -> Iterator:
+    """
+    Generates journal objects from the file at with the given filename,
+    following any `include` directives within
+    """
     it = load_lines(filename)
     it = remove_comments(it)
     it = remove_empty_lines(it)

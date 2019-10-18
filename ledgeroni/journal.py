@@ -18,10 +18,12 @@ class Journal:
     ignored_symbols: List[str] = field(default_factory=list)
     aggregate: AccountAggregate = None
     query: Query = None
-    only_filter_transactions: bool = True
 
 
     def add_transaction(self, transaction, calc_totals=True):
+        """
+        Adds and indexes a transaction.
+        """
         if not self.query or transaction.matches_query(self.query):
             self.transactions.append(transaction)
             self.accounts.update(p.account for p in transaction.postings)
@@ -29,7 +31,10 @@ class Journal:
                                     if p.amounts for c in p.amounts)
             self.update_aggregate(transaction)
 
-    def add_from_file(self, filename, calc_totals=True):
+    def add_from_file(self, filename: str, calc_totals: bool=True):
+        """
+        Loads all objects from a journal file
+        """
         for result in parser.read_file(filename):
             if isinstance(result, Transaction):
                 self.add_transaction(result, calc_totals)
@@ -40,7 +45,11 @@ class Journal:
             elif isinstance(result, Price):
                 self.prices.append(result)
 
-    def update_aggregate(self, transaction):
+    def update_aggregate(self, transaction: Transaction):
+        """
+        If the journal is keeping an aggregate, update it with the
+        postings from the given transaction
+        """
         if self.aggregate is None:
             return
         transaction = transaction.calc_totals()
