@@ -1,11 +1,13 @@
+"""
+types.py: defines data types that are parsed from a ledger journal file
+"""
 from __future__ import annotations
-import functools
+from dataclasses import dataclass, field
+from collections import defaultdict
+from typing import List, Tuple, Dict, Iterator
 import copy
 from fractions import Fraction
 from arrow.arrow import Arrow
-from dataclasses import dataclass, field
-from collections import defaultdict
-from typing import List, Set, Tuple, Dict, Iterator
 from ledgeroni.query import Query
 
 
@@ -16,15 +18,16 @@ class Commodity:
     is_prefix: bool = False
 
     @property
-    def symbol(self):
+    def symbol(self) -> str:
+        "The commodity symbol without surrounding whitespace"
         return self.name.strip()
 
-    def format_amount(self, amt):
+    def format_amount(self, amt: Fraction) -> str:
+        "Formats the amount passed in with the commodity symbol"
         amt = '{:.2f}'.format(float(amt))
         if self.is_prefix:
             return self.name + amt
-        else:
-            return amt + self.name
+        return amt + self.name
 
 
 @dataclass(frozen=True)
@@ -63,22 +66,25 @@ class Transaction:
         self.postings.append(posting)
 
     def matches_query(self, query: Query) -> bool:
-        "Returns a boolean that indicates if any of the postings match the query"
+        """
+        Returns a boolean that indicates if any of the postings match the query
+        """
         return any(p.matches_query(query) for p in self.postings)
 
     def postings_matching(self, query) -> Iterator:
         "Returns an iterator of postings that match query"
         if query is None:
             return self.postings
-        else:
-            return (p for p in self.postings if p.matches_query(query))
+        return (p for p in self.postings if p.matches_query(query))
 
     @property
     def date_str(self):
+        "Date of the transaction in journal format"
         return self.date.format('YYYY/MM/DD')
 
     @property
     def header(self):
+        "The transaction header in journal format"
         return '{} {}'.format(self.date_str, self.description)
 
     def as_journal_format(self) -> str:
@@ -93,14 +99,14 @@ class Transaction:
         """
         auto_posting = None
         totals = defaultdict(Fraction)
-        for i, p in enumerate(self.postings):
-            if p.amounts is None:
+        for i, posting in enumerate(self.postings):
+            if posting.amounts is None:
                 if auto_posting is not None:
                     raise ValueError
                 auto_posting = i
             else:
-                for c, a in p.amounts.items():
-                    totals[c] -= a
+                for commodity, amount in posting.amounts.items():
+                    totals[commodity] -= amount
 
         new_trans = self
         if auto_posting is not None:
@@ -114,6 +120,7 @@ class Transaction:
 
 @dataclass(frozen=True)
 class Price:
+    "Represents a historical price"
     timestamp: Arrow
     source: Commodity
     dest: Commodity
@@ -122,11 +129,11 @@ class Price:
 
 @dataclass(frozen=True)
 class IgnoreSymbol:
+    "Represents a symbol to be ignored in price definitions"
     symbol: str
 
 
 @dataclass(frozen=True)
 class DefaultCommodity:
+    "Specifies a commodity to be used as default"
     commodity: Commodity
-
-

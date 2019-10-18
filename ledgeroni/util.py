@@ -1,13 +1,22 @@
-from colorama import Fore, Back, Style
+"""
+Utilities for working with ledger types
+"""
+from colorama import Fore, Style
+
 
 def safe_format_amount(commodity, amount):
+    """
+    Formats an amount with a commodity, or without it if the commodity is None
+    """
     if commodity is None:
-        return amount
+        return str(amount)
     return commodity.format_amount(amount)
 
+
 def format_amount(commodity, amount):
-    s = safe_format_amount(commodity, amount)
-    s = '{:>20}'.format(s)
+    "Formats the given amount for final display"
+    fmted = safe_format_amount(commodity, amount)
+    fmted = '{:>20}'.format(fmted)
     if amount < 0:
-        s = Fore.RED + s + Style.RESET_ALL
-    return s
+        fmted = Fore.RED + fmted + Style.RESET_ALL
+    return fmted

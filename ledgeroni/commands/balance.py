@@ -1,6 +1,8 @@
+"""
+balance.py: Defines the `balance` subcommand
+"""
 import click
-from pprint import pprint
-from colorama import Fore, Back, Style
+from colorama import Fore, Style
 
 from ledgeroni.journal import Journal
 from ledgeroni.aggregate import AccountAggregate
@@ -12,7 +14,8 @@ from ledgeroni import query
 @click.argument('filter_strs', nargs=-1)
 @click.pass_context
 def print_balance(ctx, filter_strs):
-    filter_query = (None if not filter_strs 
+    "`ledger balance` subcommand"
+    filter_query = (None if not filter_strs
                     else query.build_simple_or_query(filter_strs))
     journal = Journal(query=filter_query)
 
@@ -39,4 +42,3 @@ def print_balance(ctx, filter_strs):
     totalstr = '\n'.join(format_amount(c, a)
                          for c, a in total.items())
     click.echo(totalstr)
-

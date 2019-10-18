@@ -12,12 +12,11 @@ ommisions include:
 
 
 """
+from typing import Iterator, Tuple
+from fractions import Fraction
 import re
-import itertools
 import os
 import arrow
-from fractions import Fraction
-from typing import Iterator
 
 from ledgeroni.types import (Transaction, Posting, Commodity, Price,
                              IgnoreSymbol, DefaultCommodity)
@@ -30,47 +29,47 @@ def load_lines(filename: str) -> Iterator[str]:
     over those too
     """
     cwd = os.path.dirname(filename)
-    with open(filename) as fp:
-        for line in fp:
+    with open(filename) as filep:
+        for line in filep:
             if line.startswith('!include') or line.startswith('include'):
-                for f in line.split()[1:]:
-                    p = f if os.path.isabs(f) else os.path.join(cwd, f)
-                    yield from load_lines(p)
+                for new_filename in line.split()[1:]:
+                    filepath = (new_filename if os.path.isabs(new_filename)
+                                else os.path.join(cwd, new_filename))
+                    yield from load_lines(filepath)
             else:
                 yield line
 
 
-def remove_comments(it: Iterator[str]) -> Iterator[str]:
+def remove_comments(iterator: Iterator[str]) -> Iterator[str]:
     "Removes comments that start with [;#%*] from `it`"
-    return (re.sub('[;#%|*].*$', '', line).rstrip() for line in it)
+    return (re.sub('[;#%|*].*$', '', line).rstrip() for line in iterator)
 
 
-def remove_empty_lines(it: Iterator[str]) -> Iterator[str]:
+def remove_empty_lines(iterator: Iterator[str]) -> Iterator[str]:
     "Filters `it` for lines that have no content"
-    return (line for line in it if line)
+    return (line for line in iterator if line)
 
 
-def read_transaction_line(l: str) -> str:
+def read_transaction_line(line: str) -> str:
     """
-    Reads the line that begins a transaction and returns a new transaction 
+    Reads the line that begins a transaction and returns a new transaction
     object
     """
-    date, description = l.split(maxsplit=1)
+    date, description = line.split(maxsplit=1)
     date = arrow.get(date)
     return Transaction(date=date, description=description)
-    
 
-def read_posting_line(l: str) -> Posting:
+
+def read_posting_line(line: str) -> Posting:
     "Reads a posting line and returns a Posting object"
-    l = l.strip()
+    line = line.strip()
 
     # The account name ends once we find two spaces in a row
-    account, amount = l, None
-    for i, c in enumerate(l[:-2]):
-        if c.isspace() and l[i+1].isspace() or c == '\t':
-            account, amount = l[0:i].strip(), l[i:].strip()
+    account, amount = line, None
+    for i, next_char in enumerate(line[:-2]):
+        if next_char.isspace() and line[i+1].isspace() or next_char == '\t':
+            account, amount = line[0:i].strip(), line[i:].strip()
             break
-
 
     account = tuple(account.split(':'))
     amount, commodity = read_amount(amount)
@@ -79,24 +78,24 @@ def read_posting_line(l: str) -> Posting:
     return Posting(account=account, amounts=amounts)
 
 
-amount_re = re.compile(
+AMOUNT_RE = re.compile(
     r'(?P<negation>-?)(?P<prefix>[^.,\d-]*)(?P<amount>[.,\d]+)'
     r'(?P<suffix>[^.,\d-]*)')
 
 
-def read_amount(s):
+def read_amount(amtstr: str) -> Tuple[Fraction, Commodity]:
     """
     Reads in a journal formatted amount and returns the numerical amount
     along with an associated commodity object
     """
-    if s is None:
+    if amtstr is None:
         return None, None
 
-    m = amount_re.match(s.strip())
-    prefix = m.group('prefix')
-    amount = m.group('amount').replace(',', '')
-    suffix = m.group('suffix')
-    negation = m.group('negation')
+    match = AMOUNT_RE.match(amtstr.strip())
+    prefix = match.group('prefix')
+    amount = match.group('amount').replace(',', '')
+    suffix = match.group('suffix')
+    negation = match.group('negation')
 
     # Can't have both prefix and suffix
     if prefix and suffix:
@@ -112,41 +111,43 @@ def read_amount(s):
     return amount * multi, commodity
 
 
-def read_price_line(l):
+def read_price_line(line: str) -> Price:
     """
     Reads a line that specifies a historical price in journal format and
     returns a Price object
     """
-    parts = l.split(maxsplit=4)
-    
+    parts = line.split(maxsplit=4)
+
     _, date, time, source, amount = parts
 
     src = Commodity(name=source)
     rate, dest = read_amount(amount)
 
-    dt = arrow.get(date + ' ' + time)
+    price_date = arrow.get(date + ' ' + time)
 
-    return Price(timestamp=dt, source=src, dest=dest, rate=rate)
+    return Price(timestamp=price_date, source=src, dest=dest, rate=rate)
 
 
-def read_ignore_symbol_line(l):
-    _, symbol = l.split(maxsplit=1)
+def read_ignore_symbol_line(line: str) -> IgnoreSymbol:
+    "Reads a line that specifies an ignored symbol"
+    _, symbol = line.split(maxsplit=1)
     return IgnoreSymbol(symbol=symbol)
 
 
-def read_default_commodity_line(l):
-    _, amount = l.split(maxsplit=1)
+def read_default_commodity_line(line: str) -> DefaultCommodity:
+    "Reads a line that specifies the default commodity"
+    _, amount = line.split(maxsplit=1)
     _, commodity = read_amount(amount)
     return DefaultCommodity(commodity)
 
 
-def read_lines(it: Iterator[str]) -> Iterator:
+def read_lines(iterator: Iterator[str]) -> Iterator:
     """
     Reads all lines from the iterator and builds and yields the journal
     objects that are parsed
     """
     current_transaction = None
-    for line in it:
+    for line in iterator:
         if line[0].isspace():
             if not current_transaction:
                 raise ValueError
@@ -174,8 +175,7 @@ def read_file(filename: str) -> Iterator:
     Generates journal objects from the file at with the given filename,
     following any `include` directives within
     """
-    it = load_lines(filename)
-    it = remove_comments(it)
-    it = remove_empty_lines(it)
-    yield from read_lines(it)
-
+    iterator = load_lines(filename)
+    iterator = remove_comments(iterator)
+    iterator = remove_empty_lines(iterator)
+    yield from read_lines(iterator)
