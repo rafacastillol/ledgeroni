@@ -11,6 +11,8 @@ The name Ledgeroni was chosen because I like it better than Ledgerino.
 
 ## Instalation
 
+**NOTE:** Make sure you have python>=3.7 installed.
+
 To install the tool, simply clone the repository and install with pip:
 
 ```shell
