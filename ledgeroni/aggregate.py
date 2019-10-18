@@ -3,9 +3,11 @@ aggregate.py: tool for building aggregates over accounts in dynamically
 """
 from fractions import Fraction
 from dataclasses import dataclass, field
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Iterator
 from collections import defaultdict, deque
-from ledgeroni.types import Commodity
+from ledgeroni.types import Commodity, Transaction
+from ledgeroni.query import Query
+from ledgeroni.Journal import Journal
 
 
 @dataclass
@@ -30,7 +32,7 @@ class AccountAggregate:
             self.own_balances[commodity] += amount
             self.aggregates[commodity] += amount
 
-    def add_transaction(self, transaction, query=None):
+    def add_transaction(self, transaction: Transaction, query: Query = None):
         "Adds a given transactions postings to the aggregate"
         transaction = transaction.calc_totals()
         for posting in transaction.postings_matching(query):
@@ -39,12 +41,12 @@ class AccountAggregate:
             for commodity, amount in posting.amounts.items():
                 self.add_commodity(posting.account, amount, commodity)
 
-    def add_from_journal(self, journal):
+    def add_from_journal(self, journal: Journal):
         "Adds all transactions in a journal to the aggregate"
         for transaction in journal.transactions:
             self.add_transaction(transaction, journal.query)
 
-    def iter_aggregates(self):
+    def iter_aggregates(self) -> Iterator[Tuple[int, str, Dict]]:
         """Iterates through all aggregates in a depth first search, yielding
         visited accounts in a preorder fashion.
         """

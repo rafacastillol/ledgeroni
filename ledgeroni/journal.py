@@ -5,7 +5,7 @@ on them
 from collections import defaultdict
 from fractions import Fraction
 from dataclasses import dataclass, field
-from typing import List, Set, Tuple, Iterator
+from typing import List, Set, Tuple, Iterator, Dict
 from ledgeroni import parser
 from ledgeroni.types import (Transaction, Commodity, Price,
                              IgnoreSymbol, DefaultCommodity)
@@ -23,7 +23,7 @@ class Journal:
     ignored_symbols: List[str] = field(default_factory=list)
     query: Query = None
 
-    def add_transaction(self, transaction):
+    def add_transaction(self, transaction: Transaction):
         "Adds and indexes a transaction."
         if not self.query or transaction.matches_query(self.query):
             self.transactions.append(transaction)
@@ -43,9 +43,10 @@ class Journal:
             elif isinstance(result, Price):
                 self.prices.append(result)
 
-    def generate_running_total_report(self) -> Iterator:
+    def generate_running_total_report(self) -> Iterator[Tuple[Transaction,
+                                                              Dict]]:
         """
-        Generates a running total from the transactions stored in the journal
+        Generates a running total from the transactions stored in the journal.
         """
         totals = defaultdict(Fraction)
 
