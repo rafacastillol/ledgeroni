@@ -7,7 +7,7 @@ from typing import Dict, Tuple, Iterator
 from collections import defaultdict, deque
 from ledgeroni.types import Commodity, Transaction
 from ledgeroni.query import Query
-from ledgeroni.Journal import Journal
+from ledgeroni.journal import Journal
 
 
 @dataclass
