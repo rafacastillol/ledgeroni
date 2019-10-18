@@ -7,7 +7,7 @@ but I think it's neat.
 It tries to imitate the reference Ledger CLI in usage, but only implements the
 tiniest subset of its functionality.
 
-The name Ledgeroni was chosen because I like it better than Ledgerino
+The name Ledgeroni was chosen because I like it better than Ledgerino.
 
 ## Instalation
 
