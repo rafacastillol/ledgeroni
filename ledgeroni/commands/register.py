@@ -7,7 +7,7 @@ from colorama import Fore, Style
 
 from ledgeroni.journal import Journal
 from ledgeroni.util import format_amount
-from ledgeroni import query
+from ledgeroni import expression
 
 
 def build_table(transaction, postings):

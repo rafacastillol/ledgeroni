@@ -7,6 +7,7 @@ from colorama import Fore, Style
 from ledgeroni.journal import Journal
 from ledgeroni.aggregate import AccountAggregate
 from ledgeroni.util import format_amount
+from ledgeroni import expression
 
 @click.command()
 @click.argument('filter_strs', nargs=-1)
