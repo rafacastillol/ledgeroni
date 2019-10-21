@@ -15,6 +15,8 @@ def tokenize_expression(expr_str):
         match = TOKEN_REGEX.match(expr_str)
 
 
+PRECEDENCE = {'and': 1, 'or': 1, 'not': 2}
+
 def build_postfix_expression(expr_str):
     operator_stack = []
     output = deque()
@@ -31,7 +33,7 @@ def build_postfix_expression(expr_str):
             if op != '(':
                 raise ValueError
         elif token in ('and', 'or', 'not'):
-            flush_not(operator_stack, output)
+            flush_op_stack(token, operator_stack, output)
             operator_stack.append(token)
         else:
             output.append(token)
@@ -46,8 +48,9 @@ def build_postfix_expression(expr_str):
     return output
 
 
-def flush_not(operator_stack, output):
-    while operator_stack and operator_stack[-1] == 'not':
+def flush_op_stack(operator, operator_stack, output):
+    while (operator_stack 
+           and PRECEDENCE[operator_stack[-1]] >= PRECEDENCE[operator]):
         output.append(operator_stack.pop())
 
 
