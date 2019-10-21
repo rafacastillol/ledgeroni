@@ -1,10 +1,11 @@
 import unittest
+from datetime import datetime
+from fractions import Fraction
+import arrow
+
 from ledgeroni import parser
 from ledgeroni.types import (Transaction, Posting, Commodity, Price,
                                    IgnoreSymbol, DefaultCommodity)
-import arrow
-from datetime import datetime
-from fractions import Fraction
 
 USD = Commodity(is_prefix=True, name='$')
 AU = Commodity(is_prefix=False, name='AU')
