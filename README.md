@@ -21,11 +21,18 @@ $ cd ledgeroni && pip install .
 ```
 
 After this, you can start playing with the CLI, for example, this command will print
-out the balances of the included sample journal:
+out the balances of the assets of the included sample journal:
 
 ```shell
-$ ledgeroni -f tests/sample_data/index.ledger --price-db tests/sample_data/prices_db bal
+$ ledgeroni -f tests/sample_data/index.ledger --price-db tests/sample_data/prices_db bal Asset
 ```
+
+This command shows a registry of Expenses that are not from Reddit:
+
+```shell
+$ ledgeroni -f tests/sample_data/index.ledger --price-db tests/sample_data/prices_db bal Expense and not Reddit
+```
+
 
 ## Development
 
