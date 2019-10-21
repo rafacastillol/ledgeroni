@@ -22,6 +22,9 @@ def build_postfix_expression(expr_str):
     for token in tokenize_expression(expr_str):
         if token == '(':
             operator_stack.append(token)
+            if last_was_expr:
+                flush_not(operator_stack, output)
+                operator_stack.append('or')
         elif token == ')':
             while operator_stack:
                 op = operator_stack.pop()
