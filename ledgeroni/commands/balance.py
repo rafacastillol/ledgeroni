@@ -7,16 +7,16 @@ from colorama import Fore, Style
 from ledgeroni.journal import Journal
 from ledgeroni.aggregate import AccountAggregate
 from ledgeroni.util import format_amount
-from ledgeroni import query
-
+from ledgeroni import expression
 
 @click.command()
 @click.argument('filter_strs', nargs=-1)
 @click.pass_context
 def print_balance(ctx, filter_strs):
     "`ledger balance` subcommand"
-    filter_query = (None if not filter_strs
-                    else query.build_simple_or_query(filter_strs))
+    filter_query = None
+    if filter_strs:
+        filter_query = expression.build_expression(' '.join(filter_strs))
     journal = Journal(query=filter_query)
 
     aggregate = AccountAggregate()

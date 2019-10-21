@@ -7,7 +7,7 @@ from colorama import Fore, Style
 
 from ledgeroni.journal import Journal
 from ledgeroni.util import format_amount
-from ledgeroni import query
+from ledgeroni import expression
 
 
 def build_table(transaction, postings):
@@ -39,8 +39,9 @@ def build_table(transaction, postings):
 @click.pass_context
 def print_register(ctx, filter_strs):
     "The `ledgeroni print` subcommand"
-    filter_query = (None if not filter_strs
-                    else query.build_simple_or_query(filter_strs))
+    filter_query = None
+    if filter_strs:
+        filter_query = expression.build_expression(' '.join(filter_strs))
     sorter = ctx.obj.get('SORTER', None)
 
     journal = Journal(query=filter_query)
