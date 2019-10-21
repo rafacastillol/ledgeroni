@@ -1,5 +1,7 @@
 # Ledgeroni
 
+[![Build Status](https://travis-ci.org/rafacastillol/ledgeroni.svg?branch=master)](https://travis-ci.org/rafacastillol/ledgeroni)
+
 Ledgeroni is a barebones tool for working with [ledger
 journals](https://www.ledger-cli.org/). It mostly exists as an educational toy,
 but I think it's neat.
