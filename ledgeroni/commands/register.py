@@ -53,6 +53,13 @@ def print_register(ctx, filter_strs):
     for filename in ctx.obj.get('LEDGER_FILES', []):
         journal.add_from_file(filename)
 
+    errors = journal.verify_transaction_balances()
+    if errors:
+        for error in errors:
+            errstr = 'ERROR! Transaction unbalanced: {}'.format(error.header)
+            click.echo(errstr, err=True)
+        sys.exit(1)
+
     if sorter:
         sorter.sort_journal(journal)
 

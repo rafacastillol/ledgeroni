@@ -92,6 +92,22 @@ class Transaction:
         return '\n'.join([self.header] + [p.as_journal_format()
                                           for p in self.postings])
 
+    def verify_balance(self) -> bool:
+        totals = defaultdict(Fraction)
+        for posting in self.postings:
+            # If a null amount posting exists, we're done
+            if posting.amounts is None:
+                return True
+            for commodity, amount in posting.amounts.items():
+                totals[commodity] += amount
+
+        if len(totals) == 2:
+            # Can auto balance if we have exactly two commodities
+            return True
+
+        return all(a == 0 for a in totals.values())
+
+
     def calc_totals(self) -> Transaction:
         """
         Returns a new transaction where postings with implicit amounts are

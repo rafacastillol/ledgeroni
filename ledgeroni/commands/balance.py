@@ -28,6 +28,13 @@ def print_balance(ctx, filter_strs):
     for filename in ctx.obj.get('LEDGER_FILES', []):
         journal.add_from_file(filename)
 
+    errors = journal.verify_transaction_balances()
+    if errors:
+        for error in errors:
+            errstr = 'ERROR! Transaction unbalanced: {}'.format(error.header)
+            click.echo(errstr, err=True)
+        sys.exit(1)
+
     aggregate.add_from_journal(journal)
 
     balances = list(aggregate.iter_aggregates())
