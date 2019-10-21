@@ -39,7 +39,7 @@ def build_postfix_expression(expr_str):
                 flush_not(operator_stack, output)
                 operator_stack.append('or')
 
-        last_was_expr = token not in ('and', 'or', '(')
+        last_was_expr = token not in ('and', 'or', '(', 'not')
 
     output += list(operator_stack[::-1])
 
