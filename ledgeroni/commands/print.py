@@ -31,7 +31,6 @@ def print_transactions(ctx, filter_strs):
             click.echo(errstr, err=True)
         sys.exit(1)
 
-
     if sorter:
         sorter.sort_journal(journal)
 
