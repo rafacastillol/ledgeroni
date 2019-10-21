@@ -60,3 +60,11 @@ class Journal:
                 total = (posting.amounts, posting_total)
                 trans_total[posting.account_name] = total
             yield transaction, trans_total
+
+    def verify_transaction_balances(self) -> List[Transaction]:
+        errors = []
+        for transaction in self.transactions:
+            if not transaction.verify_balance():
+                errors.append(transaction)
+
+        return errors
