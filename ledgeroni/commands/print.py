@@ -3,7 +3,7 @@ print.py: Defines the `print` subcommand
 """
 import click
 from ledgeroni.journal import Journal
-from ledgeroni import query
+from ledgeroni import expression
 
 
 @click.command()
@@ -13,7 +13,7 @@ def print_transactions(ctx, filter_strs):
     "`ledgeroni print` subcommand"
     filter_query = None
     if filter_strs:
-        filter_query = query.build_simple_or_query(filter_strs)
+        filter_query = expression.build_expression(' '.join(filter_strs))
 
     sorter = ctx.obj.get('SORTER', None)
     journal = Journal(query=filter_query)
