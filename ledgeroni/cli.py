@@ -14,7 +14,7 @@ init()
 
 @click.group()
 @click.option('--ledger-files', '--file', '-f', multiple=True,
-              help='ledger files')
+              help='ledger files', required="true")
 @click.option('--price-db', help='price database')
 @click.option('--sort', '-S', type=str,
               help='specifies how transactions should be sorted')
