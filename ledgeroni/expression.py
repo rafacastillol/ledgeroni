@@ -1,9 +1,9 @@
 import re
 from collections import deque
 
-from ledgeroni.query import RegexQuery, Or, Not, And
+from ledgeroni.query import RegexQuery, Or, Not, And, PayeeQuery
 
-TOKEN_REGEX = re.compile(r'(?P<token>\(|\)|[^\s\(\)]+)')
+TOKEN_REGEX = re.compile(r'(?P<token>\(|\)|@|[^\s\(\)\@]+)')
 
 def tokenize_expression(expr_str):
     expr_str = expr_str.lstrip()
@@ -15,13 +15,14 @@ def tokenize_expression(expr_str):
         match = TOKEN_REGEX.match(expr_str)
 
 
-PRECEDENCE = {'and': 1, 'or': 1, 'not': 2, '(': 0}
+PRECEDENCE = {'and': 1, 'or': 1, 'not': 2, '@': 2, 'payee': 3, '(': 0}
 
 def build_postfix_expression(expr_str):
     operator_stack = []
     output = deque()
     last_was_expr = False
     for token in tokenize_expression(expr_str):
+        print(token)
         if token == '(':
             if last_was_expr:
                 flush_op_stack('or', operator_stack, output)
@@ -35,7 +36,8 @@ def build_postfix_expression(expr_str):
                 output.append(op)
             if op != '(':
                 raise ValueError
-        elif token in ('and', 'or', 'not'):
+        elif token in ('and', 'or', 'not', '@', 'payee'):
+            print('ok')
             flush_op_stack(token, operator_stack, output)
             operator_stack.append(token)
         else:
@@ -44,7 +46,7 @@ def build_postfix_expression(expr_str):
                 operator_stack.append('or')
             output.append(token)
 
-        last_was_expr = token not in ('and', 'or', '(', 'not')
+        last_was_expr = token not in PRECEDENCE.keys()
 
     output += list(operator_stack[::-1])
 
@@ -76,6 +78,11 @@ def build_expr_from_postfix(postfix_expr):
         elif token == 'not':
             a = operand_stack.pop()
             operand_stack.append(Not(a))
+        elif token in ('payee', '@'):
+            a = operand_stack.pop()
+            if not isinstance(a, RegexQuery):
+                raise ValueError
+            operand_stack.append(PayeeQuery(a))
         else:
             operand = RegexQuery(re.compile(token))
             operand_stack.append(operand)

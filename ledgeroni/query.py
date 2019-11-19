@@ -30,6 +30,7 @@ class Or(Query):
         "Runs the query on data"
         return any(q.execute(data) for q in self.queries)
 
+
 @dataclass(frozen=True)
 class And(Query):
     "Query to combine multiple subqueries with an AND operation"
@@ -39,6 +40,7 @@ class And(Query):
         "Runs the query on data"
         return all(q.execute(data) for q in self.queries)
 
+
 @dataclass(frozen=True)
 class Not(Query):
     "Query that wraps a query and returns the opposite result"
@@ -47,6 +49,15 @@ class Not(Query):
     def execute(self, data: str) -> bool:
         "Runs the query on data"
         return not self.query.execute(data)
+
+
+@dataclass(frozen=True)
+class PayeeQuery(Query):
+    query: RegexQuery
+
+    def execute(self, data: str) -> bool:
+        "Runs the query on data"
+        return self.query.execute(data)
 
 
 def build_simple_or_query(strs: Iterable[str]) -> Query:

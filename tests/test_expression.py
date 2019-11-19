@@ -1,16 +1,18 @@
 import re
+import pytest
 from ledgeroni import expression
-from ledgeroni.query import Or, And, Not, RegexQuery
+from ledgeroni.query import Or, And, Not, RegexQuery, PayeeQuery
 
 
 def test_tokenize_expression():
     expr = 'not (Expense and Reddit) or Asset'
     tokens = list(expression.tokenize_expression(expr))
-    assert tokens == ['not', '(', 'Expense', 'and', 'Reddit', ')', 'or', 'Asset']
+    assert tokens == [
+        'not', '(', 'Expense', 'and', 'Reddit', ')', 'or', 'Asset']
 
 
 class TestBuildPostfixExpression:
-    def test_binary(self):
+    def test_and(self):
         expr = 'x and y'
         postfix = list(expression.build_postfix_expression(expr))
         assert postfix == ['x', 'y', 'and']
@@ -19,14 +21,30 @@ class TestBuildPostfixExpression:
         postfix = list(expression.build_postfix_expression(expr))
         assert postfix == ['x', 'y', 'and', 'z', 'and']
 
+    def test_or(self):
         expr = 'x or y or z'
         postfix = list(expression.build_postfix_expression(expr))
         assert postfix == ['x', 'y', 'or', 'z', 'or']
 
-    def test_unary(self):
+    def test_not(self):
         expr = 'not x'
         postfix = list(expression.build_postfix_expression(expr))
         assert postfix == ['x', 'not']
+
+    def test_payee(self):
+        expr = 'payee x'
+        postfix = list(expression.build_postfix_expression(expr))
+        assert postfix == ['x', 'payee']
+
+    def test_unary_precedence(self):
+        expr = 'not payee x'
+        postfix = list(expression.build_postfix_expression(expr))
+        assert postfix == ['x', 'payee', 'not']
+
+    def test_payee_at(self):
+        expr = '@x'
+        postfix = list(expression.build_postfix_expression(expr))
+        assert postfix == ['x', '@']
 
     def test_precedence(self):
         expr = 'not x and y'
@@ -83,6 +101,33 @@ class TestBuildExprFromPostfix:
         postfix = ['x']
         result = expression.build_expr_from_postfix(postfix)
         query = RegexQuery(re.compile('x'))
+
+        assert result == query
+
+    def test_payee(self):
+        postfix = ['x', 'payee']
+        result = expression.build_expr_from_postfix(postfix)
+        query = PayeeQuery(RegexQuery(re.compile('x')))
+
+        assert result == query
+
+    def test_payee_at(self):
+        postfix = ['x', '@']
+        result = expression.build_expr_from_postfix(postfix)
+        query = PayeeQuery(RegexQuery(re.compile('x')))
+
+        assert result == query
+
+    def test_payee_validation(self):
+        postfix = ['x', 'not', '@']
+        with pytest.raises(ValueError):
+            expression.build_expr_from_postfix(postfix)
+
+    def test_precedence(self):
+        postfix = ['y', 'not', 'x', '@', 'and']
+        result = expression.build_expr_from_postfix(postfix)
+        query = And((PayeeQuery(RegexQuery(re.compile('x'))),
+                    Not(RegexQuery(re.compile('y')))))
 
         assert result == query
 
