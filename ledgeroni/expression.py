@@ -68,21 +68,21 @@ def build_expr_from_postfix(postfix_expr):
     operand_stack = deque()
     for token in postfix_expr:
         if token == 'and':
-            a, b = operand_stack.pop(), operand_stack.pop()
-            operand_stack.append(And((a, b)))
+            op1, op2 = operand_stack.pop(), operand_stack.pop()
+            operand_stack.append(And((op1, op2)))
         elif token == 'or':
-            a, b = operand_stack.pop(), operand_stack.pop()
-            operand_stack.append(Or((a, b)))
+            op1, op2 = operand_stack.pop(), operand_stack.pop()
+            operand_stack.append(Or((op1, op2)))
         elif token == 'not':
-            a = operand_stack.pop()
-            operand_stack.append(Not(a))
+            operand = operand_stack.pop()
+            operand_stack.append(Not(operand))
         elif token in ('payee', '@'):
-            a = operand_stack.pop()
-            if not isinstance(a, RegexQuery):
+            operand = operand_stack.pop()
+            if not isinstance(operand, RegexQuery):
                 raise ValueError
-            operand_stack.append(PayeeQuery(a))
+            operand_stack.append(PayeeQuery(operand))
         else:
-            operand = RegexQuery(re.compile(token, re.IGNORECASE))
+            operand = RegexQuery.from_string(token)
             operand_stack.append(operand)
 
     if len(operand_stack) != 1:

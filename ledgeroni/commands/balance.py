@@ -1,6 +1,7 @@
 """
 balance.py: Defines the `balance` subcommand
 """
+import sys
 import click
 from colorama import Fore, Style
 
@@ -8,6 +9,7 @@ from ledgeroni.journal import Journal
 from ledgeroni.aggregate import AccountAggregate
 from ledgeroni.util import format_amount
 from ledgeroni import expression
+
 
 @click.command()
 @click.argument('filter_strs', nargs=-1)
@@ -19,7 +21,7 @@ def print_balance(ctx, filter_strs):
         filter_query = expression.build_expression(' '.join(filter_strs))
     journal = Journal(query=filter_query)
 
-    aggregate = AccountAggregate()
+    aggregate = AccountAggregate(query=filter_query)
 
     price_db = ctx.obj.get('PRICE_DB', None)
     if price_db:

@@ -1,4 +1,3 @@
-import re
 import pytest
 from ledgeroni import expression
 from ledgeroni.query import Or, And, Not, RegexQuery, PayeeQuery
@@ -78,43 +77,43 @@ class TestBuildExprFromPostfix:
     def test_binary(self):
         postfix = ['x', 'y', 'or']
         result = expression.build_expr_from_postfix(postfix)
-        query = Or((RegexQuery(re.compile('y')),
-                    RegexQuery(re.compile('x'))))
+        query = Or((RegexQuery.from_string('y'),
+                    RegexQuery.from_string('x')))
 
         assert result == query
 
         postfix = ['x', 'y', 'and']
         result = expression.build_expr_from_postfix(postfix)
-        query = And((RegexQuery(re.compile('y')),
-                     RegexQuery(re.compile('x'))))
+        query = And((RegexQuery.from_string('y'),
+                     RegexQuery.from_string('x')))
 
         assert result == query
 
     def test_unary(self):
         postfix = ['x', 'not']
         result = expression.build_expr_from_postfix(postfix)
-        query = Not(RegexQuery(re.compile('x')))
+        query = Not(RegexQuery.from_string('x'))
 
         assert result == query
 
     def test_single(self):
         postfix = ['x']
         result = expression.build_expr_from_postfix(postfix)
-        query = RegexQuery(re.compile('x'))
+        query = RegexQuery.from_string('x')
 
         assert result == query
 
     def test_payee(self):
         postfix = ['x', 'payee']
         result = expression.build_expr_from_postfix(postfix)
-        query = PayeeQuery(RegexQuery(re.compile('x')))
+        query = PayeeQuery(RegexQuery.from_string('x'))
 
         assert result == query
 
     def test_payee_at(self):
         postfix = ['x', '@']
         result = expression.build_expr_from_postfix(postfix)
-        query = PayeeQuery(RegexQuery(re.compile('x')))
+        query = PayeeQuery(RegexQuery.from_string('x'))
 
         assert result == query
 
@@ -126,8 +125,8 @@ class TestBuildExprFromPostfix:
     def test_precedence(self):
         postfix = ['y', 'not', 'x', '@', 'and']
         result = expression.build_expr_from_postfix(postfix)
-        query = And((PayeeQuery(RegexQuery(re.compile('x'))),
-                    Not(RegexQuery(re.compile('y')))))
+        query = And((PayeeQuery(RegexQuery.from_string('x')),
+                     Not(RegexQuery.from_string('y'))))
 
         assert result == query
 
@@ -136,37 +135,37 @@ class TestBuildExpression:
     def test_binary(self):
         postfix = 'x or y'
         result = expression.build_expression(postfix)
-        query = Or((RegexQuery(re.compile('y')),
-                    RegexQuery(re.compile('x'))))
+        query = Or((RegexQuery.from_string('y'),
+                    RegexQuery.from_string('x')))
 
         assert result == query
 
         postfix = 'x and y'
         result = expression.build_expression(postfix)
-        query = And((RegexQuery(re.compile('y')),
-                     RegexQuery(re.compile('x'))))
+        query = And((RegexQuery.from_string('y'),
+                     RegexQuery.from_string('x')))
 
         assert result == query
 
     def test_unary(self):
         postfix = 'not x'
         result = expression.build_expression(postfix)
-        query = Not(RegexQuery(re.compile('x')))
+        query = Not(RegexQuery.from_string('x'))
 
         assert result == query
 
     def test_single(self):
         postfix = 'x'
         result = expression.build_expression(postfix)
-        query = RegexQuery(re.compile('x'))
+        query = RegexQuery.from_string('x')
 
         assert result == query
 
     def test_implicit_or(self):
         postfix = 'x y'
         result = expression.build_expression(postfix)
-        query = Or((RegexQuery(re.compile('y')),
-                    RegexQuery(re.compile('x'))))
+        query = Or((RegexQuery.from_string('y'),
+                    RegexQuery.from_string('x')))
 
         assert result == query
 

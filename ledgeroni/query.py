@@ -28,6 +28,10 @@ class RegexQuery(Query):
         return {i for i, posting in enumerate(trans.postings)
                 if self.regex.search(posting.account_name) is not None}
 
+    @classmethod
+    def from_string(cls, s):
+        return cls(regex=re.compile(s, re.IGNORECASE))
+
 
 @dataclass(frozen=True)
 class Or(Query):
