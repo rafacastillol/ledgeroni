@@ -25,7 +25,7 @@ class Journal:
 
     def add_transaction(self, transaction: Transaction):
         "Adds and indexes a transaction."
-        if not self.query or transaction.matches_query(self.query):
+        if not self.query or self.query.execute(transaction):
             self.transactions.append(transaction)
             self.accounts.update(p.account for p in transaction.postings)
             self.commodities.update(c for p in transaction.postings

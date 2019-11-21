@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Dict, Tuple, Iterator
 from collections import defaultdict, deque
 from ledgeroni.types import Commodity, Transaction
-from ledgeroni.query import Query
+from ledgeroni.query import Query, MATCH_ALL
 from ledgeroni.journal import Journal
 
 
@@ -17,6 +17,7 @@ class AccountAggregate:
     subaccounts: Dict = field(
         default_factory=lambda: defaultdict(AccountAggregate))
     aggregates: Dict = field(default_factory=lambda: defaultdict(Fraction))
+    query: Query = MATCH_ALL
 
     def add_commodity(self, account: Tuple[str], amount: Fraction,
                       commodity: Commodity):
@@ -32,10 +33,10 @@ class AccountAggregate:
             self.own_balances[commodity] += amount
             self.aggregates[commodity] += amount
 
-    def add_transaction(self, transaction: Transaction, query: Query = None):
+    def add_transaction(self, transaction: Transaction):
         "Adds a given transactions postings to the aggregate"
         transaction = transaction.calc_totals()
-        for posting in transaction.postings_matching(query):
+        for posting in self.query.postings_matching(transaction):
             if posting.amounts is None:
                 continue
             for commodity, amount in posting.amounts.items():
@@ -44,7 +45,7 @@ class AccountAggregate:
     def add_from_journal(self, journal: Journal):
         "Adds all transactions in a journal to the aggregate"
         for transaction in journal.transactions:
-            self.add_transaction(transaction, journal.query)
+            self.add_transaction(transaction)
 
     def iter_aggregates(self) -> Iterator[Tuple[int, str, Dict]]:
         """Iterates through all aggregates in a depth first search, yielding

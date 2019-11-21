@@ -5,7 +5,7 @@ import arrow
 
 from ledgeroni import parser
 from ledgeroni.types import (Transaction, Posting, Commodity, Price,
-                                   IgnoreSymbol, DefaultCommodity)
+                             IgnoreSymbol, DefaultCommodity, INTEGER_COMMODITY)
 
 USD = Commodity(is_prefix=True, name='$')
 AU = Commodity(is_prefix=False, name='AU')
@@ -32,7 +32,7 @@ class TestParserMethods(unittest.TestCase):
         posting_line = '	Asset:Bitcoin Wallet		-10'
         posting = Posting(
             account=('Asset', 'Bitcoin Wallet'),
-            amounts={None: -10.0})
+            amounts={INTEGER_COMMODITY: -10.0})
         result = parser.read_posting_line(posting_line)
         self.assertEqual(result, posting)
 
@@ -61,7 +61,7 @@ class TestParserMethods(unittest.TestCase):
             description='Purchased reddit gold for the year')
         trans.add_posting(Posting(
             account=('Asset', 'Bitcoin Wallet'),
-            amounts={None: -10.0}))
+            amounts={INTEGER_COMMODITY: -10.0}))
         trans.add_posting(Posting(
             account=('Expense', 'Web Services', 'Reddit'),
             amounts=None))

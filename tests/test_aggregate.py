@@ -1,8 +1,10 @@
 from datetime import datetime
+import re
 from fractions import Fraction
 import arrow
 from ledgeroni.aggregate import AccountAggregate
 from ledgeroni.types import Commodity, Transaction, Posting
+from ledgeroni.query import RegexQuery, Not
 from ledgeroni.journal import Journal
 
 USD = Commodity(is_prefix=True, name='$')
@@ -47,8 +49,8 @@ def test_add_transaction():
     assert agg.aggregates == {USD: 0, BTC: 0}
 
 
-def test_add_transaction():
-    agg = AccountAggregate()
+def test_query_filtering():
+    agg = AccountAggregate(query=Not(RegexQuery(re.compile('Asset'))))
 
     trans = Transaction(
         date=arrow.get(datetime(2013, 2, 20)),
@@ -74,7 +76,7 @@ def test_add_transaction():
 
     agg.add_transaction(trans)
 
-    assert agg.aggregates == {USD: 0, BTC: 0}
+    assert agg.aggregates == {USD: 0, BTC: Fraction(10)}
 
 
 def test_add_from_journal():

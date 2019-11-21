@@ -19,7 +19,7 @@ import os
 import arrow
 
 from ledgeroni.types import (Transaction, Posting, Commodity, Price,
-                             IgnoreSymbol, DefaultCommodity)
+                             IgnoreSymbol, DefaultCommodity, INTEGER_COMMODITY)
 
 
 def load_lines(filename: str) -> Iterator[str]:
@@ -103,7 +103,7 @@ def read_amount(amtstr: str) -> Tuple[Fraction, Commodity]:
 
     multi = -1 if negation else 1
     amount = Fraction(amount)
-    commodity = None
+    commodity = INTEGER_COMMODITY
     if prefix:
         commodity = Commodity(is_prefix=True, name=prefix)
     if suffix:

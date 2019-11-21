@@ -8,7 +8,6 @@ from typing import List, Tuple, Dict, Iterator
 import copy
 from fractions import Fraction
 from arrow.arrow import Arrow
-from ledgeroni.query import Query
 
 
 @dataclass(frozen=True)
@@ -30,6 +29,22 @@ class Commodity:
         return amt + self.name
 
 
+class IntegerCommodity():
+    name: str = ''
+    is_prefix: bool = False
+
+    @property
+    def symbol(self) -> str:
+        return ''
+
+    def format_amount(self, amt: Fraction) -> str:
+        "Formats the amount passed in with the commodity symbol"
+        return '{:.2f}'.format(float(amt))
+
+
+INTEGER_COMMODITY = IntegerCommodity()
+
+
 @dataclass(frozen=True)
 class Posting:
     "Represents a movement in a specific account"
@@ -40,10 +55,6 @@ class Posting:
     def account_name(self) -> str:
         "Full account name as shown in the original posting"
         return ':'.join(self.account)
-
-    def matches_query(self, query: Query) -> bool:
-        "Returns whether the posting matches the given query"
-        return query.execute(self.account_name)
 
     def as_journal_format(self) -> str:
         "Returns the posting formatted in a ledger journal format"
@@ -64,18 +75,6 @@ class Transaction:
     def add_posting(self, posting: Posting):
         "Adds a posting to this transaction"
         self.postings.append(posting)
-
-    def matches_query(self, query: Query) -> bool:
-        """
-        Returns a boolean that indicates if any of the postings match the query
-        """
-        return any(p.matches_query(query) for p in self.postings)
-
-    def postings_matching(self, query) -> Iterator:
-        "Returns an iterator of postings that match query"
-        if query is None:
-            return self.postings
-        return (p for p in self.postings if p.matches_query(query))
 
     @property
     def date_str(self):
@@ -106,7 +105,6 @@ class Transaction:
             return True
 
         return all(a == 0 for a in totals.values())
-
 
     def calc_totals(self) -> Transaction:
         """
@@ -153,3 +151,5 @@ class IgnoreSymbol:
 class DefaultCommodity:
     "Specifies a commodity to be used as default"
     commodity: Commodity
+
+

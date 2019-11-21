@@ -6,6 +6,7 @@ import click
 from ledgeroni.journal import Journal
 from ledgeroni import expression
 
+
 @click.command()
 @click.argument('filter_strs', nargs=-1)
 @click.pass_context
@@ -23,6 +24,8 @@ def print_transactions(ctx, filter_strs):
 
     for filename in ctx.obj.get('LEDGER_FILES', []):
         journal.add_from_file(filename)
+
+    print(journal)
 
     errors = journal.verify_transaction_balances()
     if errors:

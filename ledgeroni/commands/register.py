@@ -2,6 +2,7 @@
 register.py: Defines the `register subcommand`
 """
 import itertools
+from os import sys
 import click
 from colorama import Fore, Style
 
