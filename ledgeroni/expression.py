@@ -22,7 +22,6 @@ def build_postfix_expression(expr_str):
     output = deque()
     last_was_expr = False
     for token in tokenize_expression(expr_str):
-        print(token)
         if token == '(':
             if last_was_expr:
                 flush_op_stack('or', operator_stack, output)
@@ -37,7 +36,6 @@ def build_postfix_expression(expr_str):
             if op != '(':
                 raise ValueError
         elif token in ('and', 'or', 'not', '@', 'payee'):
-            print('ok')
             flush_op_stack(token, operator_stack, output)
             operator_stack.append(token)
         else:

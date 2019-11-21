@@ -25,8 +25,6 @@ def print_transactions(ctx, filter_strs):
     for filename in ctx.obj.get('LEDGER_FILES', []):
         journal.add_from_file(filename)
 
-    print(journal)
-
     errors = journal.verify_transaction_balances()
     if errors:
         for error in errors:
