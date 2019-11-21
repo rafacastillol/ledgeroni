@@ -48,7 +48,8 @@ def print_balance(ctx, filter_strs):
                            for c, a in aggregate.items())
         lvlstr += '  ' * level + Fore.BLUE + name + Style.RESET_ALL
         click.echo(lvlstr)
-    click.echo('-' * 20)
-    totalstr = '\n'.join(format_amount(c, a)
-                         for c, a in total.items())
-    click.echo(totalstr)
+    if len(balances) > 1:
+        click.echo('-' * 20)
+        totalstr = '\n'.join(format_amount(c, a)
+                             for c, a in total.items())
+        click.echo(totalstr)
