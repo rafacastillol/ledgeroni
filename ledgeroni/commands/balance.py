@@ -6,6 +6,7 @@ import click
 from colorama import Fore, Style
 
 from ledgeroni.journal import Journal
+from ledgeroni.query import MATCH_ALL
 from ledgeroni.aggregate import AccountAggregate
 from ledgeroni.util import format_amount
 from ledgeroni import expression
@@ -16,7 +17,7 @@ from ledgeroni import expression
 @click.pass_context
 def print_balance(ctx, filter_strs):
     "`ledger balance` subcommand"
-    filter_query = None
+    filter_query = MATCH_ALL
     if filter_strs:
         filter_query = expression.build_expression(' '.join(filter_strs))
     journal = Journal(query=filter_query)
