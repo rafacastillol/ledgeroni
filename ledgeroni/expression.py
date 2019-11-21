@@ -82,7 +82,7 @@ def build_expr_from_postfix(postfix_expr):
                 raise ValueError
             operand_stack.append(PayeeQuery(a))
         else:
-            operand = RegexQuery(re.compile(token))
+            operand = RegexQuery(re.compile(token, re.IGNORECASE))
             operand_stack.append(operand)
 
     if len(operand_stack) != 1:
