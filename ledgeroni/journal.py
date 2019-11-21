@@ -21,15 +21,13 @@ class Journal:
     prices: List[Price] = field(default_factory=list)
     default_commodity: Commodity = None
     ignored_symbols: List[str] = field(default_factory=list)
-    query: Query = None
 
     def add_transaction(self, transaction: Transaction):
         "Adds and indexes a transaction."
-        if not self.query or self.query.execute(transaction):
-            self.transactions.append(transaction)
-            self.accounts.update(p.account for p in transaction.postings)
-            self.commodities.update(c for p in transaction.postings
-                                    if p.amounts for c in p.amounts)
+        self.transactions.append(transaction)
+        self.accounts.update(p.account for p in transaction.postings)
+        self.commodities.update(c for p in transaction.postings
+                                if p.amounts for c in p.amounts)
 
     def add_from_file(self, filename: str):
         "Loads all objects from a journal file"
@@ -43,14 +41,16 @@ class Journal:
             elif isinstance(result, Price):
                 self.prices.append(result)
 
-    def generate_running_total_report(self) -> Iterator[Tuple[Transaction,
-                                                              Dict]]:
+    def generate_running_total_report(
+            self, query: Query) -> Iterator[Tuple[Transaction, Dict]]:
         """
         Generates a running total from the transactions stored in the journal.
         """
         totals = defaultdict(Fraction)
 
         for transaction in self.transactions:
+            if not query.execute(transaction):
+                continue
             transaction = transaction.calc_totals()
             trans_total = {}
             for posting in transaction.postings:
@@ -60,6 +60,10 @@ class Journal:
                 total = (posting.amounts, posting_total)
                 trans_total[posting.account_name] = total
             yield transaction, trans_total
+
+    def transactions_matching(self, query: Query) -> Iterator[Transaction]:
+        "Returns this journals transactions filtered by a query"
+        return (t for t in self.transactions if query.execute(t))
 
     def verify_transaction_balances(self) -> List[Transaction]:
         errors = []

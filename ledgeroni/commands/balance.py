@@ -20,7 +20,7 @@ def print_balance(ctx, filter_strs):
     filter_query = MATCH_ALL
     if filter_strs:
         filter_query = expression.build_expression(' '.join(filter_strs))
-    journal = Journal(query=filter_query)
+    journal = Journal()
 
     aggregate = AccountAggregate(query=filter_query)
 

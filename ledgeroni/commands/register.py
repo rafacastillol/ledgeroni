@@ -9,6 +9,7 @@ from colorama import Fore, Style
 from ledgeroni.journal import Journal
 from ledgeroni.util import format_amount
 from ledgeroni import expression
+from ledgeroni.query import MATCH_ALL
 
 
 def build_table(transaction, postings):
@@ -40,12 +41,12 @@ def build_table(transaction, postings):
 @click.pass_context
 def print_register(ctx, filter_strs):
     "The `ledgeroni print` subcommand"
-    filter_query = None
+    filter_query = MATCH_ALL
     if filter_strs:
         filter_query = expression.build_expression(' '.join(filter_strs))
     sorter = ctx.obj.get('SORTER', None)
 
-    journal = Journal(query=filter_query)
+    journal = Journal()
 
     price_db = ctx.obj.get('PRICE_DB', None)
     if price_db:
@@ -64,7 +65,7 @@ def print_register(ctx, filter_strs):
     if sorter:
         sorter.sort_journal(journal)
 
-    for transaction, postings in journal.generate_running_total_report():
+    for transaction, postings in journal.generate_running_total_report(filter_query):
         for trans, post, change, total in build_table(transaction, postings):
             click.echo('{:<64} {:<50} {} {}'.format(
                 trans, post, change, total))
